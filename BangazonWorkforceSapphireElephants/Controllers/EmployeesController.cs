@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
-    public class EmployeeController : Controller
+    public class EmployeesController : Controller
     {
         // GET: Employee
         public ActionResult Index()
