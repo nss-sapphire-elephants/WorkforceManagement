@@ -43,7 +43,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                             t.EndDate,
                                             t.MaxAttendees
                                         FROM TrainingProgram t
-                                        ";
+                                        WHERE StartDate > DateTime()";
 
                     SqlDataReader reader = cmd.ExecuteReader();
 
