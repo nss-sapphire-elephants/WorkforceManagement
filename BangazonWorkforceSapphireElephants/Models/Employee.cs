@@ -13,5 +13,7 @@ namespace BangazonWorkforceSapphireElephants.Models
         public int DepartmentId { get; set; }
         public bool IsSupervisor { get; set; }
         public Department department { get; set; }
+        public TrainingProgram trainingProgram { get; set; }
+        public Computer computer { get; set; }
     }
 }
