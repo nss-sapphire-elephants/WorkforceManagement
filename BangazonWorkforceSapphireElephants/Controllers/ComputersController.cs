@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforceSapphireElephants.Models;
+using BangazonWorkforceSapphireElephants.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -51,15 +52,32 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
                     while (reader.Read())
                     {
-                        Computer computer = new Computer
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("CDecom")))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("cId")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
-                            DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
-                            Make = reader.GetString(reader.GetOrdinal("cMake")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
-                        };
-                        computerList.Add(computer);
+                            Computer computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+                            computerList.Add(computer);
+                        }
+
+                        else if (reader.IsDBNull(reader.GetOrdinal("CDecom")))
+                        {
+                            Computer computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                DecomissionDate = DateTime.Now,
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+                            computerList.Add(computer);
+                        }
                     }
 
                     reader.Close();
@@ -88,14 +106,31 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     Computer computer = null;
                     if (reader.Read())
                     {
-                        computer = new Computer
+                        if (!reader.IsDBNull(reader.GetOrdinal("CDecom")))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("cId")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
-                            DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
-                            Make = reader.GetString(reader.GetOrdinal("cMake")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
-                        };
+                             computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+                           
+                        }
+
+                        else if (reader.IsDBNull(reader.GetOrdinal("CDecom")))
+                        {
+                             computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                DecomissionDate = DateTime.Now,
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+                           
+                        }
 
                     }
 
@@ -108,23 +143,31 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         // GET: Computers/Create
         public ActionResult Create()
         {
-            return View();
+            ComputerCreateViewModel viewModel =
+                new ComputerCreateViewModel();
+            return View(viewModel);
         }
 
         // POST: Computers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(ComputerCreateViewModel viewModel)
         {
-            try
-            {
-                // TODO: Add insert logic here
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+            using (SqlConnection conn = Connection)
             {
-                return View();
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO computer ([manufacturer], make, purchaseDate)
+                                             VALUES (@manufacturer, @make, @purchaseDate)";
+                    cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.Manufacturer));
+                    cmd.Parameters.Add(new SqlParameter("@make", viewModel.Make));
+                    cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.Purchased));
+                    cmd.ExecuteNonQuery();
+
+                    return RedirectToAction(nameof(Index));
+                }
             }
         }
 
@@ -154,7 +197,20 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         // GET: Computers/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            Computer computer = GetComputerById(id);
+            if (computer == null)
+            {
+                return NotFound();
+            }
+
+            ComputerCreateViewModel viewModel = new ComputerCreateViewModel
+            {
+                Manufacturer = computer.Manufacturer,
+                Make = computer.Make,
+                Purchased = computer.PurchaseDate
+            };
+
+            return View(viewModel);
         }
 
         // POST: Computers/Delete/5
@@ -162,16 +218,121 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                // TODO: Add delete logic here
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
 
-                return RedirectToAction(nameof(Index));
+
+                    cmd.CommandText = @"delete computer
+                                      from computer
+                                      left join computerEmployee 
+                                      on
+                                      computer.id = computerEmployee.employeeId
+                                      where assignDate is null
+                                      and computer.id = @id ";
+
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    throw new Exception("No rows affected");
+                }
             }
-            catch
+        }
+
+        /*
+       Fuction to get a cohort by ID
+       */
+        private Computer GetComputerById(int id)
+        {
+            using (SqlConnection conn = Connection)
             {
-                return View();
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select Id as cId, PurchaseDate as CPurchase, DecomissionDate as CDecom, Make as cMake, Manufacturer as CMan" +
+                        " from computer" +
+                        " WHERE computer.id =  @id"; ;
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    Computer computer = null;
+
+                    if (reader.Read())
+                    {
+                        if (!reader.IsDBNull(reader.GetOrdinal("CDecom")))
+                        {
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+
+                        }
+
+                        else if (reader.IsDBNull(reader.GetOrdinal("CDecom")))
+                        {
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                                Make = reader.GetString(reader.GetOrdinal("cMake")),
+                                DecomissionDate = DateTime.Now,
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                            };
+
+                        }
+                    }
+
+                    reader.Close();
+
+                    return computer;
+                }
             }
+        }
+
+        /*
+           Function to get all Computers
+       */
+        private List<Computer> GetAllComputers()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select Id as cId, PurchaseDate as CPurchase, DecomissionDate as CDecom, Make as cMake, Manufacturer as CMan" +
+                        " from computer";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Computer> computers = new List<Computer>();
+
+                    while (reader.Read())
+                    {
+                        computers.Add(new Computer
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("cId")),
+                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
+                            DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
+                            Make = reader.GetString(reader.GetOrdinal("cMake")),
+                            Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                        });
+                    }
+                    reader.Close();
+
+                    return computers;
+                }
+            }
+
         }
     }
 }
