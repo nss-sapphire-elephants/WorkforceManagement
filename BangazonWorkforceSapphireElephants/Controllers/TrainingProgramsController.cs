@@ -1,18 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonWorkforceSapphireElephants.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
     public class TrainingProgramsController : Controller
+    
     {
-        // GET: TrainingPrograms
+        private readonly IConfiguration _configuration;
+
+        public TrainingProgramsController(IConfiguration configuration)
+        {
+            this._configuration = configuration;
+        }
+
+        public SqlConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            }
+        }
+        //    ****************************************************************
+        //      GET: LIST of Training Programs That have not yet taken place
+        //    ****************************************************************
         public ActionResult Index()
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT t.Id,
+                                            t.Name,
+                                            t.StartDate,
+                                            t.EndDate,
+                                            t.MaxAttendees
+                                        FROM TrainingProgram t
+                                        ";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))                            
+                        };
+
+                        trainingPrograms.Add(trainingProgram);
+                    }
+
+                    reader.Close();
+                    return View(trainingPrograms);
+                }
+            }
         }
 
         // GET: TrainingPrograms/Details/5
