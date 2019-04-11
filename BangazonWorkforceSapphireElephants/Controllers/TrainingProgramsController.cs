@@ -72,75 +72,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         //    ****************************************************************
         //       GET: One Training Program
         //    ****************************************************************
-        public ActionResult Details(int id)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"
-           SELECT tp.Id as TrainingProgramId,
-               tp.[Name],
-               tp.StartDate,
-               tp.EndDate,
-               tp.MaxAttendees,
-               e.Id as EmployeeId,
-               e.FirstName,
-               e.LastName,
-               e.IsSupervisor,
-               d.Id as DepartmentId
-
-           FROM TrainingProgram tp
-
-           left join EmployeeTraining et on tp.Id = et.TrainingProgramId
-           left join Employee e on e.Id = et.EmployeeId
-                   left join Department d on e.DepartmentId = d.Id
-                   WHERE tp.Id = @Id";
-                    cmd.Parameters.Add(new SqlParameter("@Id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    TrainingProgram trainingProgram = null;
-
-                    while (reader.Read())
-                    {
-                        trainingProgram = new TrainingProgram
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
-                            Name = reader.GetString(reader.GetOrdinal("Name")),
-                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
-                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
-                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
-                            EmployeeList = new List<Employee>()
-                        };
-
-                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
-                        {
-
-
-                            trainingProgram.EmployeeList.Add(
-                                 new Employee
-                                 {
-                                     Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                                     IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
-                                     DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"))
-
-                                 });
-
-                        }
-
-
-                    }
-
-                    reader.Close();
-
-                    return View(trainingProgram);
-
-                }
-            }
-        }
+        
 
 
 
@@ -237,6 +169,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
+
+        //    *******************************************
+        //           GetTrainingProgramById(int id)
+        //    *******************************************  
         private TrainingProgram GetTrainingProgramById(int id)
         {
             using (SqlConnection conn = Connection)
