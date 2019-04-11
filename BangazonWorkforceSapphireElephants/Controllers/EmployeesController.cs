@@ -177,46 +177,72 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName,  co.Make, tp.Name as TrainingProgram
+                    cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName, co.Make, 
+                                        tp.Name as TrainingProgram, tp.Id as TrainingProgramId, tp.StartDate, tp.EndDate, co.Id as ComputerId
                                             From Employee e
                                             Left Join Department d
-                                            On e.Id = d.Id
+                                                On e.DepartmentId = d.Id
                                             Left Join ComputerEmployee c
-                                            On c.EmployeeId = e.Id
+                                                On c.EmployeeId = e.Id
                                             Left Join Computer co
-                                            On co.Id = c.ComputerId
+                                             On co.Id = c.ComputerId
                                             Left Join EmployeeTraining et
-                                            On e.id = et.EmployeeId
+                                                On e.id = et.EmployeeId
                                             Left Join TrainingProgram tp
-                                            On et.TrainingProgramId = tp.Id
+                                                On et.TrainingProgramId = tp.Id
                                             Where e.Id = @id";
                                             
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Employee employee = null;
+                    Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
 
-                    if (reader.Read())
+                    while (reader.Read())
                     {
-                        employee = new Employee
-                        {
+                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
 
-                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                            department = new Department
+                        if (!employees.ContainsKey(employeeId)) //if the employee id doesn't exist in the dictionary, instantiate one
+                        {
+                            employee = new Employee
                             {
-                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
-                            },
-                            computer = new Computer
+
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                trainingPrograms = new List<TrainingProgram>(),
+                                computer = new Computer(),
+                                department = new Department
+                                {
+                                    Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                                }
+                            };
+                            employees.Add(employeeId, employee); // add the employee object and id to the dictionary
+                        }
+                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerId"))) //if there is a computer id related to the current employee in the while loop
+                        {
+                            Employee currentemployee = employees[employeeId];
+                            currentemployee.computer = new Computer
                             {
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
                                 Make = reader.GetString(reader.GetOrdinal("Make"))
-                            },
-                            trainingProgram = new TrainingProgram
+                            };
+                        }
+                        if (!reader.IsDBNull(reader.GetOrdinal("TrainingProgramId")))
+                        {
+                            Employee currentemployee = employees[employeeId];
+
+                            if (!currentemployee.trainingPrograms.Any(t => t.Id == reader.GetInt32(reader.GetOrdinal("TrainingProgramId"))))
                             {
-                                Name = reader.GetString(reader.GetOrdinal("TrainingProgram"))
+                                currentemployee.trainingPrograms.Add(new TrainingProgram
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                                    Name = reader.GetString(reader.GetOrdinal("TrainingProgram")),
+                                    StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                    EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate"))
+                                });
                             }
-                         };
+                        }                     
                     }
 
                     reader.Close();
