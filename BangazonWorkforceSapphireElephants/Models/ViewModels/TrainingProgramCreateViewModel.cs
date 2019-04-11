@@ -1,4 +1,6 @@
-﻿using System;
+﻿//      -- Created by Colleen Woolsey
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,7 +24,6 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         [DataType(DataType.DateTime)]        
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy hh:mi:ss t}", ApplyFormatInEditMode = true)]
         public DateTime StartDate { get; set; }
-
 
         [Required(ErrorMessage = "Enter the end date AND time.")]
         [Display(Name = "End Date/Time")]

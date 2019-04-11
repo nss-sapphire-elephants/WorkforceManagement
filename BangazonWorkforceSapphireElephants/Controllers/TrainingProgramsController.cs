@@ -26,7 +26,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             {
                 return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
             }
-        }
+        
+
+        //      -- Created by CW
         //    ****************************************************************
         //      GET: LIST of Training Programs That have not yet taken place
         //    ****************************************************************
@@ -72,13 +74,13 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         //    ****************************************************************
         //       GET: One Training Program
         //    ****************************************************************
-        
 
 
 
-        //    ***************************************
-        //          GET: TrainingPrograms/Create
-        //    ***************************************
+        //      -- Created by CW
+        //    *******************************************************
+        //      GET: TrainingProgram View Model to Create a new One
+        //    *******************************************************
 
         public ActionResult Create()
         {
@@ -87,9 +89,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return View(viewModel);
             }
         }
-
+        //      -- Created by CW
         //    ******************************************
-        //          POST: TrainingPrograms/Create
+        //          POST: The TrainingProgram Created
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(TrainingProgramCreateViewModel viewModel)
@@ -120,12 +122,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return View(viewModel);
             }
         }
-        
-       
 
-        //    *******************************************
-        //      DELETE - GET: TrainingPrograms/Delete/5
-        //    *******************************************        
+
+        //      -- Created by CW
+        //    ****************************************************
+        //      DELETE - GET: TrainingProgram to be Deleted by Id
+        //    ****************************************************        
 
         public ActionResult Delete(int id)
         {
@@ -139,6 +141,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return View(trainingProgram);
             }
         }
+        //      -- Created by CW
         //    ***********************************
         //      POST: TrainingProgram/Delete/5
 
@@ -169,10 +172,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
-
-        //    *******************************************
-        //           GetTrainingProgramById(int id)
-        //    *******************************************  
+        //      -- Created by CW
+        //    *************************************************
+        //         Method - GetTrainingProgramById(int id)
+        //    *************************************************  
         private TrainingProgram GetTrainingProgramById(int id)
         {
             using (SqlConnection conn = Connection)
