@@ -67,14 +67,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     return View(trainingPrograms);
                 }
             }
-        }
-        
+        }        
 
-        // GET: TrainingPrograms/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
+        
 
         //    ***************************************
         //          GET: TrainingPrograms/Create
@@ -120,51 +115,85 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return View(viewModel);
             }
         }
-
         
-        // GET: TrainingPrograms/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
+       
 
-        // POST: TrainingPrograms/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
+        //    *******************************************
+        //      DELETE - GET: TrainingPrograms/Delete/5
+        //    *******************************************        
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: TrainingPrograms/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            TrainingProgram trainingProgram = GetTrainingProgramById(id);
+            if (trainingProgram == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return View(trainingProgram);
+            }
         }
+        //    ***********************************
+        //      POST: TrainingProgram/Delete/5
 
-        // POST: TrainingPrograms/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id, TrainingProgram trainingProgram)
         {
             try
             {
-                // TODO: Add delete logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE Id = @id AND StartDate < GETDATE()";
 
-                return RedirectToAction(nameof(Index));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
-                return View();
+                return View(trainingProgram);
+            }
+        }
+
+        private TrainingProgram GetTrainingProgramById(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees 
+                                        FROM TrainingProgram";
+                   
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    while (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+                    };
+                    reader.Close();
+                    return trainingProgram;
+                }
             }
         }
     }
