@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
+//CREATED BY MR
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
   public class DepartmentsController : Controller
@@ -117,7 +118,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             };
                         }
                        
-                            int departmentId = reader.GetInt32(reader.GetOrdinal("departmentId"));
+
                             if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
                             {                               
                                 departments.Employees.Add(
@@ -158,12 +159,13 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"INSERT INTO department (name)
+                        cmd.CommandText = @"INSERT INTO department (name, budget)
                                              OUTPUT INSERTED.Id
-                                             VALUES (@name)";
+                                             VALUES (@name, @budget)";
                         cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
+                    cmd.Parameters.Add(new SqlParameter("@budget", viewModel.Budget));
 
-                        cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
 
                         return RedirectToAction(nameof(Index));
                     }
@@ -200,7 +202,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-
+/*
         public ActionResult Edit(int id)
         {
             Department department = getDepartmentById(id);
@@ -227,6 +229,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-        }
+        }*/
     }
 }
