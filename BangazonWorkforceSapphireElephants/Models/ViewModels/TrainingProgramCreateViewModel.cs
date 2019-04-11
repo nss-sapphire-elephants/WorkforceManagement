@@ -15,11 +15,11 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         {
             this.StartDate = DateTime.Now;
             this.EndDate = DateTime.Now;
-        }
-        
+        }     
+
         [Required(ErrorMessage = "Enter the start date AND time.")]
         [Display(Name = "Start Date/Time")]
-        [DataType(DataType.DateTime)]
+        [DataType(DataType.DateTime)]        
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy hh:mi:ss t}", ApplyFormatInEditMode = true)]
         public DateTime StartDate { get; set; }
 
@@ -27,7 +27,7 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         [Required(ErrorMessage = "Enter the end date AND time.")]
         [Display(Name = "End Date/Time")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy hh:mi:ss t}", ApplyFormatInEditMode = true)]
+        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy hh:mi:ss t}", ApplyFormatInEditMode = true)]        
         public DateTime EndDate { get; set; }
 
         [Required]

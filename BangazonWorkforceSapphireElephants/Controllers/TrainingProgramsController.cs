@@ -67,9 +67,82 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     return View(trainingPrograms);
                 }
             }
-        }        
+        }
 
-        
+        //    ****************************************************************
+        //       GET: One Training Program
+        //    ****************************************************************
+        public ActionResult Details(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+           SELECT tp.Id as TrainingProgramId,
+               tp.[Name],
+               tp.StartDate,
+               tp.EndDate,
+               tp.MaxAttendees,
+               e.Id as EmployeeId,
+               e.FirstName,
+               e.LastName,
+               e.IsSupervisor,
+               d.Id as DepartmentId
+
+           FROM TrainingProgram tp
+
+           left join EmployeeTraining et on tp.Id = et.TrainingProgramId
+           left join Employee e on e.Id = et.EmployeeId
+                   left join Department d on e.DepartmentId = d.Id
+                   WHERE tp.Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    while (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+                            EmployeeList = new List<Employee>()
+                        };
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        {
+
+
+                            trainingProgram.EmployeeList.Add(
+                                 new Employee
+                                 {
+                                     Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                     IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                     DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"))
+
+                                 });
+
+                        }
+
+
+                    }
+
+                    reader.Close();
+
+                    return View(trainingProgram);
+
+                }
+            }
+        }
+
+
 
         //    ***************************************
         //          GET: TrainingPrograms/Create
@@ -124,7 +197,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
         public ActionResult Delete(int id)
         {
-            TrainingProgram trainingProgram = GetTrainingProgramByIdForDelete(id);
+            TrainingProgram trainingProgram = GetTrainingProgramById(id);
             if (trainingProgram == null)
             {
                 return NotFound();
@@ -148,7 +221,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE id = @id";
+                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE Id = @id";
 
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
@@ -164,24 +237,24 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
-        private TrainingProgram GetTrainingProgramByIdForDelete(int id)
+        private TrainingProgram GetTrainingProgramById(int id)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees 
-                                        FROM TrainingProgram
-                                        WHERE StartDate > GETDATE()";
-                   
+                    cmd.CommandText = @"SELECT t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees 
+                                        FROM TrainingProgram t
+                                        WHERE  t.Id = @id";
+
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     TrainingProgram trainingProgram = null;
 
-                    while (reader.Read())
+                    if (reader.Read())
                     {
                         trainingProgram = new TrainingProgram()
                         {
@@ -191,7 +264,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
                             MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
                         };
-                    };
+                    }
+
                     reader.Close();
                     return trainingProgram;
                 }
