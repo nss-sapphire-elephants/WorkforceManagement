@@ -26,6 +26,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             {
                 return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
             }
+        }
         
 
         //      -- Created by CW
