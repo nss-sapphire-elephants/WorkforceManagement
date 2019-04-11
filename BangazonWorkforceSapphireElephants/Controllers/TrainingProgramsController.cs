@@ -124,7 +124,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
         public ActionResult Delete(int id)
         {
-            TrainingProgram trainingProgram = GetTrainingProgramById(id);
+            TrainingProgram trainingProgram = GetTrainingProgramByIdForDelete(id);
             if (trainingProgram == null)
             {
                 return NotFound();
@@ -148,11 +148,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE Id = @id AND StartDate < GETDATE()";
+                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE id = @id";
 
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                        cmd.ExecuteNonQuery();
+                        cmd.ExecuteNonQuery();                        
 
                         return RedirectToAction(nameof(Index));
                     }
@@ -164,7 +164,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
-        private TrainingProgram GetTrainingProgramById(int id)
+        private TrainingProgram GetTrainingProgramByIdForDelete(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -172,7 +172,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT Id, Name, StartDate, EndDate, MaxAttendees 
-                                        FROM TrainingProgram";
+                                        FROM TrainingProgram
+                                        WHERE StartDate > GETDATE()";
                    
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
