@@ -150,27 +150,23 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, TrainingProgram trainingProgram)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                using (SqlConnection conn = Connection)
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "DELETE FROM TrainingProgram  WHERE Id = @id";
+                    cmd.CommandText = @"
+                        DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id
+                        DELETE FROM TrainingProgram  WHERE Id = @id
+                        ";
 
-                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                        cmd.ExecuteNonQuery();                        
+                    cmd.ExecuteNonQuery();                        
 
-                        return RedirectToAction(nameof(Index));
-                    }
+                    return RedirectToAction(nameof(Index));
                 }
-            }
-            catch
-            {
-                return View(trainingProgram);
-            }
+            }            
         }
 
         //      -- Created by CW
@@ -184,7 +180,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT t.Id, t.Name, t.StartDate, t.EndDate, t.MaxAttendees 
+                    cmd.CommandText = @"SELECT t.Id AS TDID, t.Name, t.StartDate, t.EndDate, t.MaxAttendees 
                                         FROM TrainingProgram t
                                         WHERE  t.Id = @id";
 
@@ -198,7 +194,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     {
                         trainingProgram = new TrainingProgram()
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("TDID")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                             EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
