@@ -13,10 +13,16 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
 {
     public class ComputerCreateViewModel
     {
-        public string Manufacturer { get; set; }
-        public string Make { get; set; }
         [Required]
-        public DateTime Purchased { get; set; } 
+        public string Manufacturer { get; set; }
+
+        [Required]
+        public string Make { get; set; }
+
+        [Required]
+        public DateTime Purchased = new DateTime(2000,1,1);
+
+        [Required]
         public DateTime? Assigned { get; set; }
     }
 }
