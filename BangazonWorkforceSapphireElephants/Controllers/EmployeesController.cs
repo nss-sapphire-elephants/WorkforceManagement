@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Author: Nick Hansen
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -112,7 +113,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                         cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
 
                         cmd.ExecuteNonQuery();
-
                         return RedirectToAction(nameof(Index));
                     }
                 }
@@ -170,7 +170,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
         //-------------------------------------------   MODULAR GET EMPLOYEE BY ID  ------------------------------------
-        private Employee GetEmployeeById(int id)
+        private Employee GetEmployeeById(int id) //Get employee by ID with access to computers, training programs, departments
         {
             using (SqlConnection conn = Connection)
             {
@@ -196,11 +196,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Employee employee = null;
-                    Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
+                    Dictionary<int, Employee> employees = new Dictionary<int, Employee>(); 
 
                     while (reader.Read())
                     {
-                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
+                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId")); // employee id to pass into each if statement
 
                         if (!employees.ContainsKey(employeeId)) //if the employee id doesn't exist in the dictionary, instantiate one
                         {
@@ -221,7 +221,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                         }
                         if (!reader.IsDBNull(reader.GetOrdinal("ComputerId"))) //if there is a computer id related to the current employee in the while loop
                         {
-                            Employee currentemployee = employees[employeeId];
+                            Employee currentemployee = employees[employeeId]; //access a speicific employee in the dictionary
                             currentemployee.computer = new Computer
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
@@ -244,13 +244,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             }
                         }                     
                     }
-
                     reader.Close();
-
                     return employee;
                 }
             }
-
         }
         //-------------------------------------         MODULAR DEPARTMENT DROPDOWN            -----------------------------------------
         private List<Department> GetAllDepartments()

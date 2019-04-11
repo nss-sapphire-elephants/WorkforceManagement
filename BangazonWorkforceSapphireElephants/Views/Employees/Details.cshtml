@@ -36,13 +36,11 @@
         </dd>
         </dd>
         <dt class="col-sm-2">
-
             @Html.DisplayNameFor(model => model.trainingPrograms)
+        <dt class="col-sm-2">
+        </dt>
             @foreach (var program in Model.trainingPrograms)
             {
-                <dt class="col-sm-2">
-                </dt>
-
                 <dd class="col-sm-10">
                     @Html.DisplayFor(model => program.Name)
                     <br>
