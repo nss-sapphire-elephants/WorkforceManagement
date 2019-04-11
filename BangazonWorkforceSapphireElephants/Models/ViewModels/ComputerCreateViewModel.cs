@@ -10,6 +10,6 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         public string Manufacturer { get; set; }
         public string Make { get; set; }
         public DateTime Purchased { get; set; }
-        public bool Assigned { get; set; }
+        public DateTime? Assigned { get; set; }
     }
 }

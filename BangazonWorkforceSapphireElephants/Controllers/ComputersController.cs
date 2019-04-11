@@ -203,14 +203,55 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return NotFound();
             }
 
-            ComputerCreateViewModel viewModel = new ComputerCreateViewModel
+            using (SqlConnection conn = Connection)
             {
-                Manufacturer = computer.Manufacturer,
-                Make = computer.Make,
-                Purchased = computer.PurchaseDate
-            };
+                int? assignedcomputer = null;
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT c.Id AS ComputerId,
+                                        c.PurchaseDate, c. DecomissionDate,
+                                        c.Make, c.Manufacturer, ce.ComputerId as ComputerEmployeeCID
+                                        FROM Computer c LEFT JOIN ComputerEmployee ce on c.id = ce.ComputerId
+                                        WHERE c.Id = @id;";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.ExecuteNonQuery();
+                    SqlDataReader reader = cmd.ExecuteReader();
 
-            return View(viewModel);
+                    while (reader.Read())
+
+                        assignedcomputer = reader.IsDBNull(reader.GetOrdinal("ComputerEmployeeCID")) ? (int?)null : (int?)reader.GetInt32(reader.GetOrdinal("ComputerEmployeeCID"));
+
+                    if (assignedcomputer != null)
+                    {
+                        ComputerDeleteViewModel viewModel = new ComputerDeleteViewModel
+                        {
+                            Id = id,
+                            Make = computer.Make,
+                            Manufacturer = computer.Manufacturer,
+                            PurchaseDate = computer.PurchaseDate,
+                            DisplayDelete = false
+                        };
+
+                        reader.Close();
+                        return View(viewModel);
+
+                    }
+                    else
+                    {
+                        ComputerDeleteViewModel viewModel = new ComputerDeleteViewModel
+                        {
+                            Id = id,
+                            Make = computer.Make,
+                            Manufacturer = computer.Manufacturer,
+                            PurchaseDate = computer.PurchaseDate,
+                            DisplayDelete = true
+                        };
+                        reader.Close();
+                        return View(viewModel);
+                    }
+                }
+            }
         }
 
         // POST: Computers/Delete/5
@@ -218,31 +259,24 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
-            using (SqlConnection conn = Connection)
+            try
             {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using (SqlConnection conn = Connection)
                 {
-
-
-                    cmd.CommandText = @"delete computer
-                                      from computer
-                                      left join computerEmployee 
-                                      on
-                                      computer.id = computerEmployee.employeeId
-                                      where assignDate is null
-                                      and computer.id = @id ";
-
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
-
-                    int rowsAffected = cmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        return RedirectToAction(nameof(Index));
-                    }
+                        cmd.CommandText = "DELETE FROM computer WHERE id = @id;";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                    throw new Exception("No rows affected");
+                        cmd.ExecuteNonQuery();
+                    }
                 }
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -286,7 +320,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 Id = reader.GetInt32(reader.GetOrdinal("cId")),
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
-                                DecomissionDate = DateTime.Now,
+                                DecomissionDate = null,
                                 Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
                             };
 
