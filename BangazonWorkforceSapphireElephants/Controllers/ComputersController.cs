@@ -73,7 +73,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 Id = reader.GetInt32(reader.GetOrdinal("cId")),
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
-                                DecomissionDate = DateTime.Now,
+                                DecomissionDate = null,
                                 Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
                             };
                             computerList.Add(computer);
@@ -126,7 +126,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 Id = reader.GetInt32(reader.GetOrdinal("cId")),
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
-                                DecomissionDate = DateTime.Now,
+                                DecomissionDate = null,
                                 Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
                             };
                            
