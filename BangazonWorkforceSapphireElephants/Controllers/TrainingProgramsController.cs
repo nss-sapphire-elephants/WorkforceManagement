@@ -4,14 +4,14 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforceSapphireElephants.Models;
+using BangazonWorkforceSapphireElephants.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
-    public class TrainingProgramsController : Controller
-    
+    public class TrainingProgramsController : Controller    
     {
         private readonly IConfiguration _configuration;
 
@@ -43,8 +43,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                             t.EndDate,
                                             t.MaxAttendees
                                         FROM TrainingProgram t
-                                        WHERE StartDate > DateTime()";
-
+                                        WHERE StartDate > GETDATE()";
+                    
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
@@ -57,7 +57,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                             EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
-                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))                            
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
                         };
 
                         trainingPrograms.Add(trainingProgram);
@@ -68,6 +68,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
+        
 
         // GET: TrainingPrograms/Details/5
         public ActionResult Details(int id)
@@ -75,29 +76,52 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             return View();
         }
 
-        // GET: TrainingPrograms/Create
+        //    ***************************************
+        //          GET: TrainingPrograms/Create
+        //    ***************************************
+
         public ActionResult Create()
         {
-            return View();
+            {
+                TrainingProgramCreateViewModel viewModel = new TrainingProgramCreateViewModel();
+                return View(viewModel);
+            }
         }
 
-        // POST: TrainingPrograms/Create
+        //    ******************************************
+        //          POST: TrainingPrograms/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(TrainingProgramCreateViewModel viewModel)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO TrainingProgram
+                                    (Name, StartDate, EndDate, MaxAttendees)
+                                    VALUES (@name, @startDate, @endDate, @maxAttendees)";
+                        cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", viewModel.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", viewModel.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", viewModel.MaxAttendees));
 
-                return RedirectToAction(nameof(Index));
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
-                return View();
+                return View(viewModel);
             }
         }
 
+        
         // GET: TrainingPrograms/Edit/5
         public ActionResult Edit(int id)
         {
