@@ -127,7 +127,23 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Employee employee = GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            EmployeeEditViewModel viewModel = new EmployeeEditViewModel
+            {
+                Employee = employee,
+                AddTrainingProgramList =
+                EnrolledTrainingProgramsList =
+                ComputersList =
+                Department = GetAllDepartments();
+                
+            };
+
+            return View(viewModel);
         }
 
         // POST: Employee/Edit/5
