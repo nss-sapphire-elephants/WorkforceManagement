@@ -1,3 +1,4 @@
+
 ﻿// Author: Nick Hansen
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;

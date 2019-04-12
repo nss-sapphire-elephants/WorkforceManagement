@@ -1,92 +1,211 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonWorkforceSapphireElephants.Models;
+using BangazonWorkforceSapphireElephants.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
-    public class TrainingProgramsController : Controller
+    public class TrainingProgramsController : Controller    
     {
-        // GET: TrainingPrograms
-        public ActionResult Index()
+        private readonly IConfiguration _configuration;
+
+        public TrainingProgramsController(IConfiguration configuration)
         {
-            return View();
+            this._configuration = configuration;
         }
 
-        // GET: TrainingPrograms/Details/5
-        public ActionResult Details(int id)
+        public SqlConnection Connection
         {
-            return View();
+            get
+            {
+                return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            }
+        }
+        
+        //      -- Created by CW
+        //    ****************************************************************
+        //                   GET: LIST of Training Programs
+        //    ****************************************************************
+
+        public ActionResult Index(string option)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT t.Id,
+                                    t.Name,
+                                    t.StartDate,
+                                    t.EndDate,
+                                    t.MaxAttendees
+                                FROM TrainingProgram t
+                                WHERE EndDate > GETDATE()";                       
+                    
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        trainingPrograms.Add(trainingProgram);
+                    }
+
+                    reader.Close();
+                    return View(trainingPrograms);
+                }
+            }
         }
 
-        // GET: TrainingPrograms/Create
+        
+        //    ****************************************************************
+        //       GET: One Training Program
+        //    ****************************************************************
+
+
+
+        //      -- Created by CW
+        //    *******************************************************
+        //      GET: TrainingProgram View Model to Create a new One
+        //    *******************************************************
+
         public ActionResult Create()
         {
-            return View();
+            {
+                TrainingProgramCreateViewModel viewModel = new TrainingProgramCreateViewModel();
+                return View(viewModel);
+            }
         }
-
-        // POST: TrainingPrograms/Create
+        //      -- Created by CW
+        //    ******************************************
+        //          POST: The TrainingProgram Created
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(TrainingProgramCreateViewModel viewModel)
         {
             try
             {
-                // TODO: Add insert logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO TrainingProgram
+                                    (Name, StartDate, EndDate, MaxAttendees)
+                                    VALUES (@name, @startDate, @endDate, @maxAttendees)";
+                        cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", viewModel.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", viewModel.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", viewModel.MaxAttendees));
 
-                return RedirectToAction(nameof(Index));
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
-                return View();
+                return View(viewModel);
             }
         }
 
-        // GET: TrainingPrograms/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
 
-        // POST: TrainingPrograms/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
+        //      -- Created by CW
+        //    ****************************************************
+        //      DELETE - GET: TrainingProgram to be Deleted by Id
+        //    ****************************************************        
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: TrainingPrograms/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            TrainingProgram trainingProgram = GetTrainingProgramById(id);
+            if (trainingProgram == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return View(trainingProgram);
+            }
         }
+        //      -- Created by CW
+        //    ***********************************
+        //      POST: TrainingProgram/Delete/5
 
-        // POST: TrainingPrograms/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id, TrainingProgram trainingProgram)
         {
-            try
+            using (SqlConnection conn = Connection)
             {
-                // TODO: Add delete logic here
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id
+                        DELETE FROM TrainingProgram  WHERE Id = @id
+                        ";
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    cmd.ExecuteNonQuery();                        
+
+                    return RedirectToAction(nameof(Index));
+                }
+            }            
+        }
+
+        //      -- Created by CW
+        //    *************************************************
+        //         Method - GetTrainingProgramById(int id)
+        //    *************************************************  
+        private TrainingProgram GetTrainingProgramById(int id)
+        {
+            using (SqlConnection conn = Connection)
             {
-                return View();
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT t.Id AS TDID, t.Name, t.StartDate, t.EndDate, t.MaxAttendees 
+                                        FROM TrainingProgram t
+                                        WHERE  t.Id = @id";
+
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    if (reader.Read())
+                    {
+                        trainingProgram = new TrainingProgram()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("TDID")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+                    }
+
+                    reader.Close();
+                    return trainingProgram;
+                }
             }
         }
     }
