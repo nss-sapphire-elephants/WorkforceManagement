@@ -133,13 +133,14 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return NotFound();
             }
 
-            EmployeeEditViewModel viewModel = new EmployeeEditViewModel
+            EmployeeEditViewModel viewModel = new EmployeeEditViewModel 
+            //are these the things that need to be listed here? what are they = to?
             {
                 Employee = employee,
                 AddTrainingProgramList =
                 EnrolledTrainingProgramsList =
                 ComputersList =
-                Department = GetAllDepartments();
+                DepartmentsList = GetAllDepartments()
                 
             };
 
@@ -282,6 +283,33 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     while (reader.Read())
                     {
                         departments.Add(new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                        });
+                    }
+                    reader.Close();
+
+                    return departments;
+                }
+            }
+        }
+        private List<Computer> GetAllAvailableComputers()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, Name 
+                                        FROM Department;";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Computer> availableComputers = new List<Computer>();
+
+                    while (reader.Read())
+                    {   
+                        availableComputers.Add(new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name"))

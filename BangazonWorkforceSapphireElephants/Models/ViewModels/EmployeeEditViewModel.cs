@@ -15,40 +15,6 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         public List<TrainingProgram> AddTrainingProgramList { get; set; }
         public List<TrainingProgram> EnrolledTrainingProgramsList { get; set; }
 
-        public EmployeeEditViewModel() //create the lists which will support the retuned SQL data for each list in the edit view
-        {
-            DepartmentsList = new List<Department>();
-            ComputersList = new List<Computer>();
-            AddTrainingProgramList = new List<TrainingProgram>();
-            EnrolledTrainingProgramsList = new List<TrainingProgram>();
-        }
-
-        public EmployeeEditViewModel(string connectionString)
-        {        
-                using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"SELECT Id, Name
-                                        FROM Department";
-
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    DepartmentsList = new List<Department>();
-
-                    while (reader.Read())
-                    {
-                        DepartmentsList.Add(new Department
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("Name"))
-                        });
-                    }
-                    reader.Close();
-                }
-            }
-        }
         public List<SelectListItem> DepartmentOptions
         {
             get
