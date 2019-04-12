@@ -137,9 +137,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             //are these the things that need to be listed here? what are they = to?
             {
                 Employee = employee,
-                AddTrainingProgramList =
-                EnrolledTrainingProgramsList =
-                ComputersList =
+                AddTrainingProgramList = GetAllAvailableTrainingPrograms(id),
+                EnrolledTrainingProgramsList = GetAllEnrolledTrainingPrograms(id),
+                ComputersList = GetAllAvailableComputers(),
                 DepartmentsList = GetAllDepartments()
                 
             };
@@ -301,8 +301,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name 
-                                        FROM Department;";
+                    cmd.CommandText = @"SELECT c.Id, c.Make
+                                            FROM Computer c
+                                            LEFT JOIN ComputerEmployee ce
+                                            ON c.Id = ce.ComputerId
+                                            WHERE ce.UnassignDate IS NOT NULL";
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Computer> availableComputers = new List<Computer>();
@@ -312,12 +315,81 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                         availableComputers.Add(new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                                                                         
                         });
                     }
                     reader.Close();
 
-                    return departments;
+                    return availableComputers;
+                }
+            }
+        }
+        private List<TrainingProgram> GetAllAvailableTrainingPrograms(int id)
+        {    
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    //return computers which have an unassigned date, meaning, they are available to be reasigned
+                    cmd.CommandText = @"select tp.Id, tp.Name
+                                            FROM Employee e
+                                            LEFT JOIN EmployeeTraining et
+                                            ON e.Id = et.EmployeeId
+                                            LEFT JOIN TrainingProgram tp
+                                            ON et.TrainingProgramId = tp.Id
+                                            WHERE  e.Id != @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> availableTrainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        availableTrainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                        });
+                    }
+                    reader.Close();
+
+                    return availableTrainingPrograms;
+                }
+            }
+        }
+        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select tp.Id, tp.Name
+                                            FROM Employee e
+                                            LEFT JOIN EmployeeTraining et
+                                            ON e.Id = et.EmployeeId
+                                            LEFT JOIN TrainingProgram tp
+                                            ON et.TrainingProgramId = tp.Id
+                                            WHERE  e.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> enrolledTrainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        enrolledTrainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+
+                        });
+                    }
+                    reader.Close();
+
+                    return enrolledTrainingPrograms;
                 }
             }
         }
