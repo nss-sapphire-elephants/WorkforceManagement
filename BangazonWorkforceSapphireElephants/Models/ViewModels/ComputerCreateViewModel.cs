@@ -23,6 +23,7 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
 
         [Required]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.DateTime)]
         public DateTime Purchased = new DateTime(2000,1,1);
 
         [Required]
