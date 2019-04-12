@@ -26,6 +26,6 @@ namespace BangazonWorkforceSapphireElephants.Models
         [Display(Name = "Maximum Attendees Allowed")]
         public int MaxAttendees { get; set; }
 
-        public List<Employee> EmployeeList { get; set; }
+        public List<Employee> EmployeeList { get; set; }        
     }
 }

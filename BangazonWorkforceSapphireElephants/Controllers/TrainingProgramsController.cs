@@ -30,10 +30,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         
         //      -- Created by CW
         //    ****************************************************************
-        //                   GET: LIST of Training Programs
+        //                   GET: LIST of Future Training Programs
         //    ****************************************************************
-
-        public ActionResult Index(string option)
+        
+        public ActionResult Index()
         {
             using (SqlConnection conn = Connection)
             {
@@ -72,7 +72,51 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
-        
+        //      -- Created by CW
+        //    ****************************************************************
+        //                   GET: LIST of Past Training Programs
+        //    ****************************************************************
+
+        public ActionResult Past()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT t.Id,
+                                    t.Name,
+                                    t.StartDate,
+                                    t.EndDate,
+                                    t.MaxAttendees
+                                FROM TrainingProgram t
+                                WHERE EndDate < GETDATE()";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        trainingPrograms.Add(trainingProgram);
+                    }
+
+                    reader.Close();
+                    return View(trainingPrograms);
+                }
+            }
+        }
+
+
         //    ****************************************************************
         //       GET: One Training Program
         //    ****************************************************************
@@ -208,5 +252,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
+
+        //      -- Created by CW
+        //    *************************************************
+        //         Method - GetTrainingProgramPastDate()
+        //    *************************************************  
+
     }
 }
