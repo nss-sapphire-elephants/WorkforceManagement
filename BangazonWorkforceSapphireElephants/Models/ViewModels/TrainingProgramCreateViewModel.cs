@@ -31,8 +31,8 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy hh:mi:ss t}", ApplyFormatInEditMode = true)]        
         public DateTime EndDate { get; set; }
 
-        [Required]
-        public int MaxAttendees { get; set; }
+        [Required(ErrorMessage = "Enter the maximum Attendees for this training.")]
+        public int? MaxAttendees { get; set; }
         
     }
 }
