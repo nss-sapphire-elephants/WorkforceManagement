@@ -28,12 +28,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
         
-
         //      -- Created by CW
         //    ****************************************************************
-        //      GET: LIST of Training Programs That have not yet taken place
+        //                   GET: LIST of Training Programs
         //    ****************************************************************
-        public ActionResult Index()
+
+        public ActionResult Index(string option)
         {
             using (SqlConnection conn = Connection)
             {
@@ -41,12 +41,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT t.Id,
-                                            t.Name,
-                                            t.StartDate,
-                                            t.EndDate,
-                                            t.MaxAttendees
-                                        FROM TrainingProgram t
-                                        WHERE StartDate > GETDATE()";
+                                    t.Name,
+                                    t.StartDate,
+                                    t.EndDate,
+                                    t.MaxAttendees
+                                FROM TrainingProgram t
+                                WHERE EndDate > GETDATE()";                       
                     
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -72,6 +72,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
+        
         //    ****************************************************************
         //       GET: One Training Program
         //    ****************************************************************
