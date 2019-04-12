@@ -12,7 +12,7 @@ using Microsoft.Extensions.Configuration;
 //CREATED BY MR
 namespace BangazonWorkforceSapphireElephants.Controllers
 {
-  public class DepartmentsController : Controller
+    public class DepartmentsController : Controller
     {
         private readonly IConfiguration _configuration;
 
@@ -31,17 +31,17 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         // GET: Departments
         [HttpGet]
         public ActionResult Index()
-        {      
+        {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    
-                        cmd.CommandText = @"select d.id as departmentId, d.[name], d.budget, e.id as EmployeeId, e.firstname, e.lastname
+
+                    cmd.CommandText = @"select d.id as departmentId, d.[name], d.budget, e.id as EmployeeId, e.firstname, e.lastname
                                             FROM Department d LEFT JOIN Employee e
                                             on d.id = e.departmentid";
-                   
+
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Dictionary<int, Department> departments = new Dictionary<int, Department>();
@@ -49,7 +49,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     {
                         int departmentId = reader.GetInt32(reader.GetOrdinal("departmentId"));
                         if (!departments.ContainsKey(departmentId))
-                           
+
                         {
                             Department newDepartment = new Department
                             {
@@ -62,7 +62,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                         }
                         if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
                         {
-                            
+
                             Department currentDepartment = departments[departmentId];
                             currentDepartment.Employees.Add(
                             new Employee
@@ -76,9 +76,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
                     }
 
-                          reader.Close();
-                   
-                        return View(departments.Values.ToList());                  
+                    reader.Close();
+
+                    return View(departments.Values.ToList());
                 }
             }
         }
@@ -105,32 +105,32 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Department departments = null;
-              
+
                     while (reader.Read())
                     {
-                        if(departments == null)                        
+                        if (departments == null)
                         {
                             departments = new Department
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("departmentId")),
                                 Name = reader.GetString(reader.GetOrdinal("Name")),
-                                Budget = reader.GetInt32(reader.GetOrdinal("Budget")),                              
+                                Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
                             };
                         }
-                       
 
-                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
-                            {                               
-                                departments.Employees.Add(
-                                    new Employee
-                                    {
-                                        Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                        LastName = reader.GetString(reader.GetOrdinal("LastName"))
-                                    }
-                                );
-                            }
-                       
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        {
+                            departments.Employees.Add(
+                                new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                                }
+                            );
+                        }
+
                     }
 
                     reader.Close();
@@ -153,23 +153,23 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(DepartmentCreateViewModel viewModel)
         {
-            
-                using (SqlConnection conn = Connection)
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = @"INSERT INTO department (name, budget)
+                    cmd.CommandText = @"INSERT INTO department (name, budget)
                                              OUTPUT INSERTED.Id
                                              VALUES (@name, @budget)";
-                        cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
+                    cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
                     cmd.Parameters.Add(new SqlParameter("@budget", viewModel.Budget));
 
                     cmd.ExecuteNonQuery();
 
-                        return RedirectToAction(nameof(Index));
-                    }
-                }                      
+                    return RedirectToAction(nameof(Index));
+                }
+            }
         }
 
         private Department getDepartmentById(int id)
@@ -202,33 +202,33 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-/*
-        public ActionResult Edit(int id)
-        {
-            Department department = getDepartmentById(id);
-            DepartmentCreateViewModel viewModel = new DepartmentCreateViewModel
-            {
-                Department = department
-            };
-            return View(viewModel);
-        }
-        [HttpPost]
-        public ActionResult Edit(int id, DepartmentCreateViewModel viewModel)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+        /*
+                public ActionResult Edit(int id)
                 {
-                    cmd.CommandText = @"UPDATE Department
-                                            SET [Name] = @name
-                                            WHERE Id = @id";
-                    cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
-                    cmd.ExecuteNonQuery();
-                    return RedirectToAction(nameof(Index));
+                    Department department = getDepartmentById(id);
+                    DepartmentCreateViewModel viewModel = new DepartmentCreateViewModel
+                    {
+                        Department = department
+                    };
+                    return View(viewModel);
                 }
-            }
-        }*/
+                [HttpPost]
+                public ActionResult Edit(int id, DepartmentCreateViewModel viewModel)
+                {
+                    using (SqlConnection conn = Connection)
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = @"UPDATE Department
+                                                    SET [Name] = @name
+                                                    WHERE Id = @id";
+                            cmd.Parameters.Add(new SqlParameter("@name", viewModel.Name));
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+                            cmd.ExecuteNonQuery();
+                            return RedirectToAction(nameof(Index));
+                        }
+                    }
+                }*/
     }
 }

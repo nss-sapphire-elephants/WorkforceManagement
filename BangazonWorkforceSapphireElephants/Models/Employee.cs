@@ -1,4 +1,4 @@
-﻿//Author: Nick Hansen
+﻿﻿//Author: Nick Hansen
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
