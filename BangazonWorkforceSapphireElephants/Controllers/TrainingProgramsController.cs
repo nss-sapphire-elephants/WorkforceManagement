@@ -118,10 +118,84 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
+        //      -- Created by Anupama
         //    ****************************************************************
-        //       GET: One Training Program
+        //                   GET: Details---Training Programs
         //    ****************************************************************
 
+
+        public ActionResult Details(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+            SELECT tp.Id as TrainingProgramId,
+                tp.[Name],
+                tp.StartDate,
+                tp.EndDate,
+                tp.MaxAttendees,
+                e.Id as EmployeeId,
+                e.FirstName,
+                e.LastName,
+                e.IsSupervisor,
+                d.Id as DepartmentId
+                
+            FROM TrainingProgram tp
+            
+            left join EmployeeTraining et on tp.Id = et.TrainingProgramId
+            left join Employee e on e.Id = et.EmployeeId
+                    left join Department d on e.DepartmentId = d.Id
+                    WHERE tp.Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    while (reader.Read())
+                    {
+                        if (trainingProgram == null)
+                        {
+                            trainingProgram = new TrainingProgram
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                                MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+                                EmployeeList = new List<Employee>()
+                            };
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        {
+
+
+                            trainingProgram.EmployeeList.Add(
+                                 new Employee
+                                 {
+                                     Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                     IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                     DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"))
+
+                                 });
+
+                        }
+
+
+                    }
+
+                    reader.Close();
+
+                    return View(trainingProgram);
+
+                }
+            }
+        }
 
 
         //      -- Created by CW
@@ -167,6 +241,133 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             catch
             {
                 return View(viewModel);
+            }
+        }
+
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   GET: TrainingPrograms/Edit
+        //    ****************************************************************
+
+        
+        public ActionResult Edit(int id)
+        {
+            {
+                TrainingProgram trainingProgrm = GetTrainingProgramByIdforEdit(id);
+                if (trainingProgrm == null)
+                {
+                    return NotFound();
+                }
+
+                 TrainingProgramEditViewModel viewModel = new TrainingProgramEditViewModel
+                {
+
+                TrainingProgram = trainingProgrm
+                 };
+
+                 return View(viewModel);
+               
+            }
+        }
+
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   POST: TrainingPrograms/Edit
+        //    ****************************************************************
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        
+        public ActionResult Edit(int id, TrainingProgramEditViewModel viewModel)
+        {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE TrainingProgram 
+                                           SET Name = @name, 
+                                               StartDate = @startDate,
+                                               EndDate = @endDate, 
+                                               MaxAttendees = @maxAttendees
+                                         WHERE Id = @Id;";
+                       cmd.Parameters.Add(new SqlParameter("@name", viewModel.TrainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", viewModel.TrainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", viewModel.TrainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", viewModel.TrainingProgram.MaxAttendees));
+                        cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                        
+
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+            catch
+            {
+                
+                return View(viewModel);
+            }
+
+        }
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   Method: GetTrainingProgramByIdforEdit
+        //    ****************************************************************
+
+
+        private TrainingProgram GetTrainingProgramByIdforEdit(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id as TrainingProgramId,
+                [Name],
+                StartDate,
+                EndDate,
+                MaxAttendees
+               
+
+            FROM TrainingProgram 
+
+            
+                    WHERE Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    if (reader.Read())
+                    {
+
+
+                        trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+
+                        };
+
+
+
+
+                    }
+
+                    reader.Close();
+
+                    return trainingProgram;
+
+                }
+
             }
         }
 
