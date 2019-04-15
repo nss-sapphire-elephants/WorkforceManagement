@@ -330,16 +330,15 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand()) //FIX SQL STATEMENT Training program and Id, not employee
+                using (SqlCommand cmd = conn.CreateCommand()) 
                 {
-                    //
-                    cmd.CommandText = @"select tp.Id, tp.Name 
-                                            FROM Employee e
-                                            LEFT JOIN EmployeeTraining et
-                                            ON e.Id = et.EmployeeId
-                                            LEFT JOIN TrainingProgram tp
-                                            ON et.TrainingProgramId = tp.Id
-                                            WHERE  e.Id != @id";
+                    // Searches database for training programs where a specific user has not registered
+                    cmd.CommandText = @"select tp.Id, tp.Name
+                                        FROM TrainingProgram tp
+                                        LEFT JOIN EmployeeTraining et
+                                        ON tp.Id = et.TrainingProgramId
+                                        WHERE  et.EmployeeId != @id";
+
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -360,7 +359,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)//FIX SQL STATEMENT Training program and Id, not employee
+        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -368,12 +367,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"select tp.Id, tp.Name
-                                            FROM Employee e
-                                            LEFT JOIN EmployeeTraining et
-                                            ON e.Id = et.EmployeeId
-                                            LEFT JOIN TrainingProgram tp
-                                            ON et.TrainingProgramId = tp.Id
-                                            WHERE  e.Id = @id";
+                                        FROM TrainingProgram tp
+                                        LEFT JOIN EmployeeTraining et
+                                        ON tp.Id = et.TrainingProgramId
+                                        WHERE  et.EmployeeId = @id";
+
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
