@@ -27,6 +27,16 @@
                 <span asp-validation-for="Purchased" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="Assigned" class="control-label"></label>
+                <input asp-for="Assigned" class="form-control" />
+                <span asp-validation-for="Assigned" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EmployeeId" class="control-label">Employee</label>
+                <select asp-for="EmployeeId" asp-items="@Model.EmployeeOptions"></select>
+                <span asp-validation-for="EmployeeId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
