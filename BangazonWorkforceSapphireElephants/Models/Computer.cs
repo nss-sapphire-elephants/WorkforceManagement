@@ -22,5 +22,7 @@ namespace BangazonWorkforceSapphireElephants.Models
         public string Make { get; set; }
         [Required]
         public string Manufacturer { get; set; }
+
+        public Employee Employee { get; set; }
     }
 }
