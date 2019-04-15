@@ -146,23 +146,65 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
             return View(viewModel);
         }
-
+        
         // POST: Employee/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, EmployeeEditViewModel viewModel)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName,                   co.Make, tp.Name as TrainingProgram, tp.Id as TrainingProgramId, tp.StartDate,                  tp.EndDate, co.Id as ComputerId
+                                            From Employee e
+                                            Left Join Department d
+                                                On e.DepartmentId = d.Id
+                                            Left Join ComputerEmployee c
+                                                On c.EmployeeId = e.Id
+                                            Left Join Computer co
+                                             On co.Id = c.ComputerId
+                                            Left Join EmployeeTraining et
+                                                On e.id = et.EmployeeId as TrainingEmployeeId
+                                            Left Join TrainingProgram tp
+                                                On et.TrainingProgramId = tp.Id
+                                            Where e.Id = @id
 
-                return RedirectToAction(nameof(Index));
+                                            UPDATE Employee
+                                            SET FirstName = @FirstName,
+                                                DepartmentId = @DepartmentId,
+                                                ComputerId = @ComputerId                                             
+                                            WHERE EmployeeId = @id
+
+                                            UPDATE EmployeeTraining tp
+                                            SET TrainingEmployeeId = @EmployeeTrainingId
+                                            WHERE TrainingEmployeeId = @id
+
+
+                                            //delete training program list and re add instead of update
+
+                                            ";
+
+                        cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId)); //need access to the department class
+                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.)); //need access to the computer class
+                        cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.EnrolledTrainingProgramsList));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        cmd.ExecuteNonQuery();
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
-            {
-                return View();
+            {              
+                return View(viewModel);
             }
         }
+        
 
         // GET: Employee/Delete/5
         public ActionResult Delete(int id)
@@ -332,12 +374,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand()) 
                 {
-                    // Searches database for training programs where a specific user has not registered
+                    // Searches database for training programs where a specific user has not registered and the training program has not started yet
                     cmd.CommandText = @"select tp.Id, tp.Name
                                         FROM TrainingProgram tp
                                         LEFT JOIN EmployeeTraining et
                                         ON tp.Id = et.TrainingProgramId
-                                        WHERE  et.EmployeeId != @id";
+                                        WHERE  et.EmployeeId != @id AND StartDate >= CURRENT_TIMESTAMP ";
 
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
