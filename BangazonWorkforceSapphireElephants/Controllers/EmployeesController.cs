@@ -330,10 +330,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using (SqlCommand cmd = conn.CreateCommand()) //FIX SQL STATEMENT Training program and Id, not employee
                 {
-                    //return computers which have an unassigned date, meaning, they are available to be reasigned
-                    cmd.CommandText = @"select tp.Id, tp.Name
+                    //
+                    cmd.CommandText = @"select tp.Id, tp.Name 
                                             FROM Employee e
                                             LEFT JOIN EmployeeTraining et
                                             ON e.Id = et.EmployeeId
@@ -344,9 +344,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<TrainingProgram> availableTrainingPrograms = new List<TrainingProgram>();
-
+                
                     while (reader.Read())
                     {
+
                         availableTrainingPrograms.Add(new TrainingProgram
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
@@ -359,7 +360,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)
+        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)//FIX SQL STATEMENT Training program and Id, not employee
         {
             using (SqlConnection conn = Connection)
             {
