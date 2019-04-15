@@ -72,9 +72,9 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
 
-        //      -- Created by Anupam
+        //      -- Created by Anupama
         //    ****************************************************************
-        //                   GET: Deatails Training Programs
+        //                   GET: Details---Training Programs
         //    ****************************************************************
 
 
@@ -195,6 +195,130 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             catch
             {
                 return View(viewModel);
+            }
+        }
+
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   GET: TrainingPrograms/Edit
+        //    ****************************************************************
+
+        
+        public ActionResult Edit(int id)
+        {
+            {
+                TrainingProgram trainingProgrm = GetTrainingProgramByIdforEdit(id);
+                if (trainingProgrm == null)
+                {
+                    return NotFound();
+                }
+
+                TrainingProgramEditViewModel viewModel = new TrainingProgramEditViewModel
+                {
+
+                    TrainingProgram = trainingProgrm
+                };
+
+                return View(viewModel);
+            }
+        }
+
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   POST: TrainingPrograms/Edit
+        //    ****************************************************************
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        //public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, TrainingProgramEditViewModel viewModel)
+        {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE TrainingProgram 
+                                           SET Name = @name, 
+                                               StartDate = @startDate,
+                                               EndDate = @endDate, 
+                                               MaxAttendees = @maxAttendees
+                                         WHERE Id = @Id;";
+                        cmd.Parameters.Add(new SqlParameter(" @name", viewModel.TrainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@lastname", viewModel.TrainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@slackhandle", viewModel.TrainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@cohortId", viewModel.TrainingProgram.MaxAttendees));
+                        cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                        cmd.ExecuteNonQuery();
+
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+            }
+            catch
+            {
+                // viewModel.Cohorts = GetAllCohorts();
+                return View(viewModel);
+            }
+
+        }
+        //      -- Created by Anupama
+        //    ****************************************************************
+        //                   Method: GetTrainingProgramByIdforEdit
+        //    ****************************************************************
+
+
+        private TrainingProgram GetTrainingProgramByIdforEdit(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT tp.Id as TrainingProgramId,
+                tp.[Name],
+                tp.StartDate,
+                tp.EndDate,
+                tp.MaxAttendees
+               
+
+            FROM TrainingProgram tp
+
+            
+                    WHERE tp.Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram trainingProgram = null;
+
+                    if (reader.Read())
+                    {
+
+
+                        trainingProgram = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("TrainingProgramId")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+
+                        };
+
+
+
+
+                    }
+
+                    reader.Close();
+
+                    return trainingProgram;
+
+                }
+
             }
         }
 
