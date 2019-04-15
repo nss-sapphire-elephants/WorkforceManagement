@@ -178,21 +178,20 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                                 DepartmentId = @DepartmentId,
                                                 ComputerId = @ComputerId                                             
                                             WHERE EmployeeId = @id
-
-                                            UPDATE EmployeeTraining tp
+                                            ";
+/*
+                                            UPDATE EmployeeTraining
                                             SET TrainingEmployeeId = @EmployeeTrainingId
                                             WHERE TrainingEmployeeId = @id
-
-
-                                            //delete training program list and re add instead of update
-
-                                            ";
+*/
 
                         cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
+                        
                         cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId)); //need access to the department class
-                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.)); //need access to the computer class
-                        cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.EnrolledTrainingProgramsList));
+                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id)); //need access to elployee computer to change the computer associated with the employee
+                        cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
+                        
 
                         cmd.ExecuteNonQuery();
                         return RedirectToAction(nameof(Index));
