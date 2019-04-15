@@ -7,5 +7,6 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
 {
     public class TrainingProgramEditViewModel
     {
+        public TrainingProgram TrainingProgram { get; set; }
     }
 }
