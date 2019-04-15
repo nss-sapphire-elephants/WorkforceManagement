@@ -36,7 +36,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT e.Id, e.FirstName, e.LastName, d.Name as DepartmentName, d.id as DepartmentId
+                    cmd.CommandText = @"SELECT e.Id, 
+                                            e.FirstName, 
+                                            e.LastName, 
+                                            d.Name as DepartmentName, 
+                                            d.id as DepartmentId
                                         FROM Employee e
                                         LEFT JOIN Department d
                                         ON e.DepartmentId = d.Id";
@@ -134,14 +138,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
 
             EmployeeEditViewModel viewModel = new EmployeeEditViewModel 
-            //are these the things that need to be listed here? what are they = to?
             {
                 Employee = employee,
                 AddTrainingProgramList = GetAllAvailableTrainingPrograms(id),
                 EnrolledTrainingProgramsList = GetAllEnrolledTrainingPrograms(id),
                 ComputersList = GetAllAvailableComputers(),
-                DepartmentsList = GetAllDepartments()
-                
+                DepartmentsList = GetAllDepartments()                
             };
 
             return View(viewModel);
@@ -159,27 +161,19 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName,                   co.Make, tp.Name as TrainingProgram, tp.Id as TrainingProgramId, tp.StartDate,                  tp.EndDate, co.Id as ComputerId
-                                            From Employee e
-                                            Left Join Department d
-                                                On e.DepartmentId = d.Id
-                                            Left Join ComputerEmployee c
-                                                On c.EmployeeId = e.Id
-                                            Left Join Computer co
-                                             On co.Id = c.ComputerId
-                                            Left Join EmployeeTraining et
-                                                On e.id = et.EmployeeId as TrainingEmployeeId
-                                            Left Join TrainingProgram tp
-                                                On et.TrainingProgramId = tp.Id
-                                            Where e.Id = @id
-
+                        cmd.CommandText = @"
                                             UPDATE Employee
-                                            SET FirstName = @FirstName,
+                                            SET LastName = @LastName,
                                                 DepartmentId = @DepartmentId,
                                                 ComputerId = @ComputerId                                             
-                                            WHERE EmployeeId = @id
+                                            WHERE e.Id= @id;
+
+
                                             ";
 /*
+                                            //ADD employee id, training progam id
+                                            INSERT INTO Employee
+                                            //Delete employee id, training program id (delete training programs and readd               them to update)
                                             UPDATE EmployeeTraining
                                             SET TrainingEmployeeId = @EmployeeTrainingId
                                             WHERE TrainingEmployeeId = @id
@@ -187,8 +181,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
                         cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
                         
-                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId)); //need access to the department class
-                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id)); //need access to elployee computer to change the computer associated with the employee
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id));
                         cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
                         
@@ -204,7 +198,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
         
-
         // GET: Employee/Delete/5
         public ActionResult Delete(int id)
         {
@@ -228,27 +221,35 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
         //-------------------------------------------   MODULAR GET EMPLOYEE BY ID  ------------------------------------
-        private Employee GetEmployeeById(int id) //Get employee by ID with access to computers, training programs, departments
+        private Employee GetEmployeeById(int id) //Get employee by ID with access to computers, training programs, and department id's
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName, co.Make, 
-                                        tp.Name as TrainingProgram, tp.Id as TrainingProgramId, tp.StartDate, tp.EndDate, co.Id as ComputerId
-                                            From Employee e
-                                            Left Join Department d
-                                                On e.DepartmentId = d.Id
-                                            Left Join ComputerEmployee c
+                    cmd.CommandText = @"SELECT e.Id as EmployeeId,
+                                               e.FirstName, 
+                                               e.LastName,
+                                               d.Name as DepartmentName, 
+                                               co.Make, 
+                                               tp.Name as TrainingProgram,
+                                               tp.Id as TrainingProgramId, 
+                                               tp.StartDate, 
+                                               tp.EndDate, 
+                                               co.Id as ComputerId
+                                            FROM Employee e
+                                            LEFT JOIN Department d
+                                                ON e.DepartmentId = d.Id
+                                            LEFT JOIN ComputerEmployee c
                                                 On c.EmployeeId = e.Id
-                                            Left Join Computer co
-                                             On co.Id = c.ComputerId
-                                            Left Join EmployeeTraining et
-                                                On e.id = et.EmployeeId
-                                            Left Join TrainingProgram tp
-                                                On et.TrainingProgramId = tp.Id
-                                            Where e.Id = @id";
+                                            LEFT JOIN Computer co
+                                             ON co.Id = c.ComputerId
+                                            LEFT JOIN EmployeeTraining et
+                                                ON e.id = et.EmployeeId
+                                            LEFT JOIN TrainingProgram tp
+                                                ON et.TrainingProgramId = tp.Id
+                                            WHERE e.Id = @id";
                                             
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -407,6 +408,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
+                    //Search database for training programs where the specific employee is enrolled
                     cmd.CommandText = @"select tp.Id, tp.Name
                                         FROM TrainingProgram tp
                                         LEFT JOIN EmployeeTraining et
