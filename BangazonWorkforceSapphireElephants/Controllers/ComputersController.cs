@@ -41,13 +41,17 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
 
         // GET: Computers
-        public ActionResult Index()
+        public ActionResult Index(string searchString)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
+
                 {
+                    if (String.IsNullOrEmpty(searchString))
+                    {
+
                     cmd.CommandText = @"select computer.Id as cId, computer.PurchaseDate as CPurchase, 
 							computer.DecomissionDate as CDecom, computer.Make as cMake, computer.Manufacturer as CMan,
 						computerEmployee.assignDate, computerEmployee.UnassignDate, computerEmployee.employeeId, employee.id as eId,
@@ -57,8 +61,24 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 						computer.id = computerEmployee.computerId
 						 left join employee
 						on computerEmployee.employeeId = employee.id";
+                    }
+                  
+                        else if (!String.IsNullOrEmpty(searchString))
+                        {
 
-                    
+                        cmd.CommandText = @" select computer.Id as cId, computer.PurchaseDate as CPurchase, 
+							computer.DecomissionDate as CDecom, computer.Make as cMake, computer.Manufacturer as CMan,
+						computerEmployee.assignDate, computerEmployee.UnassignDate, computerEmployee.employeeId, employee.id as eId,
+						employee.firstName as FIRSTNAME, employee.LastName as LASTNAME from computer
+                             left join computerEmployee
+							on
+						computer.id = computerEmployee.computerId
+						 left join employee
+						on computerEmployee.employeeId = employee.id
+                            where 
+                            make Like @searchString OR manufacturer LIKE @searchString; ";
+                          cmd.Parameters.Add(new SqlParameter("@searchString", $"%{searchString}%"));
+                        }
 
 
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -78,10 +98,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("cMan")),
                                 Employee = new Employee
-                                  {
-                                      Id = reader.GetInt32(reader.GetOrdinal("eId")),
-                                      FirstName = reader.GetString(reader.GetOrdinal("FIRSTNAME")),
-                                      LastName = reader.GetString(reader.GetOrdinal("LASTNAME"))
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("eId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FIRSTNAME")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LASTNAME"))
                                 }
                             };
                             computerList.Add(computer);
