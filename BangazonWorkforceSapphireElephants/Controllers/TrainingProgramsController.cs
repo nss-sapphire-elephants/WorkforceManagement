@@ -27,12 +27,12 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
             }
         }
-        
+
         //      -- Created by CW
         //    ****************************************************************
-        //                   GET: LIST of Future Training Programs
+        //                   GET: LIST of FUTURE Training Programs
         //    ****************************************************************
-        
+
         public ActionResult Index()
         {
             using (SqlConnection conn = Connection)
@@ -41,20 +41,20 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT t.Id,
-                                    t.Name,
+                                    t.[Name],
                                     t.StartDate,
                                     t.EndDate,
                                     t.MaxAttendees
                                 FROM TrainingProgram t
-                                WHERE EndDate > GETDATE()";                       
-                    
+                                WHERE EndDate > GETDATE()";
+
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+                    List<TrainingProgram> futurePrograms = new List<TrainingProgram>();
 
                     while (reader.Read())
                     {
-                        TrainingProgram trainingProgram = new TrainingProgram
+                        TrainingProgram futureProgram = new TrainingProgram
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
@@ -63,42 +63,44 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
                         };
 
-                        trainingPrograms.Add(trainingProgram);
+                        futurePrograms.Add(futureProgram);
                     }
 
                     reader.Close();
-                    return View(trainingPrograms);
+                    return View(futurePrograms);
                 }
             }
         }
 
         //      -- Created by CW
         //    ****************************************************************
-        //                   GET: LIST of Past Training Programs
+        //                   GET: LIST of PAST Training Programs
         //    ****************************************************************
 
         public ActionResult Past()
         {
+            DateTime today = DateTime.UtcNow.AddDays(01);
+            string filterDate = $"{today.Year}-{today.Month}-{today.Day}";
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT t.Id,
-                                    t.Name,
-                                    t.StartDate,
-                                    t.EndDate,
-                                    t.MaxAttendees
-                                FROM TrainingProgram t
-                                WHERE EndDate < GETDATE()";
-
+                    cmd.CommandText = $@"SELECT Id, 
+                                            [Name], 
+                                            StartDate, 
+                                            EndDate, 
+                                            MaxAttendees
+                                        FROM TrainingProgram
+                                        WHERE EndDate < '{filterDate}'
+                                        ORDER BY StartDate";
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
-
+                    List<TrainingProgram> pastPrograms = new List<TrainingProgram>();
                     while (reader.Read())
                     {
-                        TrainingProgram trainingProgram = new TrainingProgram
+                        TrainingProgram pastProgram = new TrainingProgram
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
@@ -107,15 +109,14 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                             MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
                         };
 
-                        trainingPrograms.Add(trainingProgram);
+                        pastPrograms.Add(pastProgram);
                     }
 
                     reader.Close();
-                    return View(trainingPrograms);
+                    return View(pastPrograms);
                 }
             }
         }
-
 
         //    ****************************************************************
         //       GET: One Training Program
