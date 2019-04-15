@@ -23,7 +23,7 @@ namespace BangazonWorkforceSapphireElephants.Models
         public DateTime EndDate { get; set; }
 
         [Required(ErrorMessage = "Enter the maximum Attendees for this training.")]
-        [Display(Name = "Maximum Attendees Allowed")]
+        [Display(Name = "Max Attendees")]
         public int MaxAttendees { get; set; }
 
         public List<Employee> EmployeeList { get; set; }        
