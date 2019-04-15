@@ -259,13 +259,14 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     return NotFound();
                 }
 
-                TrainingProgramEditViewModel viewModel = new TrainingProgramEditViewModel
+                 TrainingProgramEditViewModel viewModel = new TrainingProgramEditViewModel
                 {
 
-                    TrainingProgram = trainingProgrm
-                };
+                TrainingProgram = trainingProgrm
+                 };
 
-                return View(viewModel);
+                 return View(viewModel);
+               
             }
         }
 
@@ -276,7 +277,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //public ActionResult Edit(int id, IFormCollection collection)
+        
         public ActionResult Edit(int id, TrainingProgramEditViewModel viewModel)
         {
             try
@@ -292,11 +293,13 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                                EndDate = @endDate, 
                                                MaxAttendees = @maxAttendees
                                          WHERE Id = @Id;";
-                        cmd.Parameters.Add(new SqlParameter(" @name", viewModel.TrainingProgram.Name));
-                        cmd.Parameters.Add(new SqlParameter("@lastname", viewModel.TrainingProgram.StartDate));
-                        cmd.Parameters.Add(new SqlParameter("@slackhandle", viewModel.TrainingProgram.EndDate));
-                        cmd.Parameters.Add(new SqlParameter("@cohortId", viewModel.TrainingProgram.MaxAttendees));
+                       cmd.Parameters.Add(new SqlParameter("@name", viewModel.TrainingProgram.Name));
+                        cmd.Parameters.Add(new SqlParameter("@startDate", viewModel.TrainingProgram.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@endDate", viewModel.TrainingProgram.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@maxAttendees", viewModel.TrainingProgram.MaxAttendees));
                         cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                        
 
                         cmd.ExecuteNonQuery();
 
@@ -306,7 +309,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
             catch
             {
-                // viewModel.Cohorts = GetAllCohorts();
+                
                 return View(viewModel);
             }
 
@@ -324,17 +327,17 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT tp.Id as TrainingProgramId,
-                tp.[Name],
-                tp.StartDate,
-                tp.EndDate,
-                tp.MaxAttendees
+                    cmd.CommandText = @"SELECT Id as TrainingProgramId,
+                [Name],
+                StartDate,
+                EndDate,
+                MaxAttendees
                
 
-            FROM TrainingProgram tp
+            FROM TrainingProgram 
 
             
-                    WHERE tp.Id = @Id";
+                    WHERE Id = @Id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
