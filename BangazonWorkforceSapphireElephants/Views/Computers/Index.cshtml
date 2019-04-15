@@ -9,6 +9,12 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+<form asp-controller="Movies" asp-action="Index">
+    <p>
+        Title: <input type="text" name="SearchString">
+        <input type="submit" value="Filter" />
+    </p>
+</form>
 <table class="table">
     <thead>
         <tr>
@@ -18,8 +24,11 @@
             <th>
                 Decommision Date
             </th>
-            <th> 
+            <th>
                 @Html.DisplayNameFor(model => model.Manufacturer)
+            </th>
+            <th>
+               Employee Name
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Make)
@@ -41,13 +50,16 @@
 
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.Employee.FullName)
+            </td>
+            <td>
                 @Html.ActionLink(($"{item.Make}"), "Details", new { id = item.Id })
             </td>
             <td>
                 @Html.ActionLink("Delete", "Delete", new { id = item.Id })
             </td>
-              
-</tr>
+
+        </tr>
 }
     </tbody>
 </table>

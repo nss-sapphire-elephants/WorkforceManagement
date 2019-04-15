@@ -41,15 +41,46 @@ namespace BangazonWorkforceSapphireElephants.Controllers
 
 
         // GET: Computers
-        public ActionResult Index()
+        public ActionResult Index(string searchString)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
+
                 {
-                    cmd.CommandText = "select Id as cId, PurchaseDate as CPurchase, DecomissionDate as CDecom, Make as cMake, Manufacturer as CMan" +
-                        " from computer";
+                    if (String.IsNullOrEmpty(searchString))
+                    {
+
+                    cmd.CommandText = @"select computer.Id as cId, computer.PurchaseDate as CPurchase, 
+							computer.DecomissionDate as CDecom, computer.Make as cMake, computer.Manufacturer as CMan,
+						computerEmployee.assignDate, computerEmployee.UnassignDate, computerEmployee.employeeId, employee.id as eId,
+						employee.firstName as FIRSTNAME, employee.LastName as LASTNAME from computer
+						left join computerEmployee
+							on
+						computer.id = computerEmployee.computerId
+						 left join employee
+						on computerEmployee.employeeId = employee.id";
+                    }
+                  
+                        else if (!String.IsNullOrEmpty(searchString))
+                        {
+
+                        cmd.CommandText = @" select computer.Id as cId, computer.PurchaseDate as CPurchase, 
+							computer.DecomissionDate as CDecom, computer.Make as cMake, computer.Manufacturer as CMan,
+						computerEmployee.assignDate, computerEmployee.UnassignDate, computerEmployee.employeeId, employee.id as eId,
+						employee.firstName as FIRSTNAME, employee.LastName as LASTNAME from computer
+                             left join computerEmployee
+							on
+						computer.id = computerEmployee.computerId
+						 left join employee
+						on computerEmployee.employeeId = employee.id
+                            where 
+                            make Like @searchString OR manufacturer LIKE @searchString; ";
+                          cmd.Parameters.Add(new SqlParameter("@searchString", $"%{searchString}%"));
+                        }
+
+
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Computer> computerList = new List<Computer>();
@@ -65,7 +96,13 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
                                 DecomissionDate = reader.GetDateTime(reader.GetOrdinal("CDecom")),
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan")),
+                                Employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("eId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FIRSTNAME")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LASTNAME"))
+                                }
                             };
                             computerList.Add(computer);
                         }
@@ -78,7 +115,13 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("CPurchase")),
                                 Make = reader.GetString(reader.GetOrdinal("cMake")),
                                 DecomissionDate = null,
-                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan"))
+                                Manufacturer = reader.GetString(reader.GetOrdinal("cMan")),
+                                Employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("eId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FIRSTNAME")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LASTNAME"))
+                                }
                             };
                             computerList.Add(computer);
                         }
@@ -148,7 +191,10 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         public ActionResult Create()
         {
             ComputerCreateViewModel viewModel =
-                new ComputerCreateViewModel();
+                new ComputerCreateViewModel()
+                {
+                    Employees = GetAllUnassignedEmployees()
+                };
             return View(viewModel);
         }
 
@@ -157,21 +203,42 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(ComputerCreateViewModel viewModel)
         {
-
+            int newId;
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"INSERT INTO computer ([manufacturer], make, purchaseDate)
+                                        OUTPUT INSERTED.ID
                                              VALUES (@manufacturer, @make, @purchaseDate)";
                     cmd.Parameters.Add(new SqlParameter("@manufacturer", viewModel.Manufacturer));
                     cmd.Parameters.Add(new SqlParameter("@make", viewModel.Make));
                     cmd.Parameters.Add(new SqlParameter("@purchaseDate", viewModel.Purchased));
-                    cmd.ExecuteNonQuery();
 
-                    return RedirectToAction(nameof(Index));
+                    newId = (int)cmd.ExecuteScalar();
                 }
+
+
+
+            }
+
+            using (SqlConnection conn2 = Connection)
+            {
+                conn2.Open();
+                using (SqlCommand cmd = conn2.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO computerEmployee (AssignDate, computerId, employeeId)
+                                       
+                                             VALUES (@AssignDate, @ComputerId, @employeeId)";
+                    cmd.Parameters.Add(new SqlParameter("@AssignDate", viewModel.Assigned));
+                    cmd.Parameters.Add(new SqlParameter("@ComputerId", newId));
+                    cmd.Parameters.Add(new SqlParameter("@employeeId", viewModel.EmployeeId));
+                    cmd.ExecuteNonQuery();
+                }
+
+                return RedirectToAction(nameof(Index));
+
             }
         }
 
@@ -285,7 +352,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         }
 
         /*
-       Fuction to get a cohort by ID
+       Fuction to get a computer by ID
        */
         private Computer GetComputerById(int id)
         {
@@ -368,6 +435,44 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     reader.Close();
 
                     return computers;
+                }
+            }
+
+        }
+
+
+
+        /*
+          Function to get all Computers that don't have an Employee
+      */
+        private List<Employee> GetAllUnassignedEmployees()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                        select employee.id as employeeId, employee.FirstName as FirstName, employee.LastName as Lastname, ComputerEmployee.AssignDate from employee
+                                        left join computerEmployee
+                                        on employee.id = computerEmployee.EmployeeId
+                                        where computerEmployee.assignDate is null";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Employee> employees = new List<Employee>();
+
+                    while (reader.Read())
+                    {
+                       employees.Add(new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("employeeId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                        });
+                    }
+                    reader.Close();
+
+                    return employees;
                 }
             }
 
