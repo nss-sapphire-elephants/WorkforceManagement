@@ -36,7 +36,11 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT e.Id, e.FirstName, e.LastName, d.Name as DepartmentName, d.id as DepartmentId
+                    cmd.CommandText = @"SELECT e.Id, 
+                                            e.FirstName, 
+                                            e.LastName, 
+                                            d.Name as DepartmentName, 
+                                            d.id as DepartmentId
                                         FROM Employee e
                                         LEFT JOIN Department d
                                         ON e.DepartmentId = d.Id";
@@ -77,7 +81,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 {
                     return NotFound();
                 }
-
                 else
                 {
                     return View(employee);
@@ -127,26 +130,75 @@ namespace BangazonWorkforceSapphireElephants.Controllers
         // GET: Employee/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
-        }
+            Employee employee = GetEmployeeById(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
 
+            EmployeeEditViewModel viewModel = new EmployeeEditViewModel 
+            {
+                Employee = employee,
+                AddTrainingProgramList = GetAllAvailableTrainingPrograms(id),
+                EnrolledTrainingProgramsList = GetAllEnrolledTrainingPrograms(id),
+                ComputersList = GetAllAvailableComputers(),
+                DepartmentsList = GetAllDepartments()                
+            };
+
+            return View(viewModel);
+        }
+        
         // POST: Employee/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(int id, EmployeeEditViewModel viewModel)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {   //update the employee name and department. If more time, include edit capabilities for computer assignment and training program.
+                        cmd.CommandText = @"
+                                            UPDATE Employee
+                                            SET FirstName = @FirstName,
+                                                LastName = @LastName,
+                                                DepartmentId = @DepartmentId                                         
+                                            WHERE Id= @id";
 
-                return RedirectToAction(nameof(Index));
+                        cmd.Parameters.Add(new SqlParameter("@FirstName", viewModel.Employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.department.Id));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        /*                  
+                        Update the list of training programs by removing the existing query return and rerunning the query with the updated information when the user clicks the button 
+                        
+                            Delete the training programs unselected by using employee id, training program 
+                        
+                            ADD the updates training list by using employee id and training progam id
+                                INSERT INTO Employee
+                                UPDATE EmployeeTraining
+                                SET TrainingEmployeeId = @EmployeeTrainingId
+                                WHERE TrainingEmployeeId = @id
+                                              
+                            cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
+                            cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id));
+                            cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
+                        */
+
+                        cmd.ExecuteNonQuery();
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
-            {
-                return View();
+            {              
+                return View(viewModel);
             }
         }
-
+        
         // GET: Employee/Delete/5
         public ActionResult Delete(int id)
         {
@@ -170,27 +222,36 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             }
         }
         //-------------------------------------------   MODULAR GET EMPLOYEE BY ID  ------------------------------------
-        private Employee GetEmployeeById(int id) //Get employee by ID with access to computers, training programs, departments
+        private Employee GetEmployeeById(int id) //Get employee by ID with access to computers, training programs, and department id's
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id as EmployeeId, e.FirstName, e.LastName, d.Name as DepartmentName, co.Make, 
-                                        tp.Name as TrainingProgram, tp.Id as TrainingProgramId, tp.StartDate, tp.EndDate, co.Id as ComputerId
-                                            From Employee e
-                                            Left Join Department d
-                                                On e.DepartmentId = d.Id
-                                            Left Join ComputerEmployee c
+                    cmd.CommandText = @"SELECT e.Id as EmployeeId,
+                                               e.FirstName, 
+                                               e.LastName,
+                                               d.Name as DepartmentName, 
+                                               co.Make, 
+                                               tp.Name as TrainingProgram,
+                                               tp.Id as TrainingProgramId, 
+                                               tp.StartDate, 
+                                               tp.EndDate, 
+                                               co.Id as ComputerId,
+                                               d.Id as DepartmentId
+                                            FROM Employee e
+                                            LEFT JOIN Department d
+                                                ON e.DepartmentId = d.Id
+                                            LEFT JOIN ComputerEmployee c
                                                 On c.EmployeeId = e.Id
-                                            Left Join Computer co
-                                             On co.Id = c.ComputerId
-                                            Left Join EmployeeTraining et
-                                                On e.id = et.EmployeeId
-                                            Left Join TrainingProgram tp
-                                                On et.TrainingProgramId = tp.Id
-                                            Where e.Id = @id";
+                                            LEFT JOIN Computer co
+                                             ON co.Id = c.ComputerId
+                                            LEFT JOIN EmployeeTraining et
+                                                ON e.id = et.EmployeeId
+                                            LEFT JOIN TrainingProgram tp
+                                                ON et.TrainingProgramId = tp.Id
+                                            WHERE e.Id = @id";
                                             
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -214,6 +275,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 computer = new Computer(),
                                 department = new Department
                                 {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                                     Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
                                 }
                             };
@@ -249,7 +311,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-        //-------------------------------------         MODULAR DEPARTMENT DROPDOWN            -----------------------------------------
+        //     --------------------------         MODULAR DEPARTMENT DROPDOWN            ---------------------------
         private List<Department> GetAllDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -274,6 +336,104 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     reader.Close();
 
                     return departments;
+                }
+            }
+        }
+        private List<Computer> GetAllAvailableComputers()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                { //searches database for all computers which are available for an employee (not null means currently unassigned)
+                    cmd.CommandText = @"SELECT c.Id, c.Make
+                                            FROM Computer c
+                                            LEFT JOIN ComputerEmployee ce
+                                            ON c.Id = ce.ComputerId
+                                            WHERE ce.UnassignDate IS NOT NULL";
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<Computer> availableComputers = new List<Computer>();
+
+                    while (reader.Read())
+                    {   
+                        availableComputers.Add(new Computer
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Make = reader.GetString(reader.GetOrdinal("Make")),
+                                                                         
+                        });
+                    }
+                    reader.Close();
+
+                    return availableComputers;
+                }
+            }
+        }
+        private List<TrainingProgram> GetAllAvailableTrainingPrograms(int id)
+        {    
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand()) 
+                {
+                    // Searches database for training programs where a specific user has not registered and the training program has not started yet
+                    cmd.CommandText = @"select tp.Id, tp.Name
+                                        FROM TrainingProgram tp
+                                        LEFT JOIN EmployeeTraining et
+                                        ON tp.Id = et.TrainingProgramId
+                                        WHERE  et.EmployeeId != @id AND StartDate >= CURRENT_TIMESTAMP ";
+
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> availableTrainingPrograms = new List<TrainingProgram>();
+                
+                    while (reader.Read())
+                    {
+
+                        availableTrainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                        });
+                    }
+                    reader.Close();
+
+                    return availableTrainingPrograms;
+                }
+            }
+        }
+        private List<TrainingProgram> GetAllEnrolledTrainingPrograms(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    //Search database for training programs where the specific employee is enrolled
+                    cmd.CommandText = @"select tp.Id, tp.Name
+                                        FROM TrainingProgram tp
+                                        LEFT JOIN EmployeeTraining et
+                                        ON tp.Id = et.TrainingProgramId
+                                        WHERE  et.EmployeeId = @id";
+
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<TrainingProgram> enrolledTrainingPrograms = new List<TrainingProgram>();
+
+                    while (reader.Read())
+                    {
+                        enrolledTrainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                        });
+                    }
+                    reader.Close();
+
+                    return enrolledTrainingPrograms;
                 }
             }
         }
