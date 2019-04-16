@@ -150,7 +150,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     left join Department d on e.DepartmentId = d.Id
                     WHERE tp.Id = @Id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = cmd.ExecuteReader(
+                        );
 
                     TrainingProgram trainingProgram = null;
 
