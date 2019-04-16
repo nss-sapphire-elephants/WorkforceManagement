@@ -7,22 +7,22 @@ Visual Studio Community 2017
 ![alt text](https://i.imgur.com/z0rFYz0.png)
 
 ### Description
-With our app you can:
+Bangazon Workforce Management supports an HR department with hiring, equipment allocation and personal development opportunities within the Bangazon company.
 
 ### 1. Employee
 
  ##### GET
 Given an HR employee wants to view employees
-When the employee clicks on the Employees item in the navigation bar
-Then all current employees should be listed with the following information
+when the employee clicks on the "Employees" item in the navigation bar,
+all current employees should be listed with the following information:
 
 1. First name and last name
 2. Department
 
  ##### POST
 Given the user is viewing the list of employees
-When the user clicks the Create New link
-Then a form for be displayed on which the following information can be entered
+when the user clicks the "Create New link" hyperlink,
+a form for will be displayed on which the following information can be entered:
 
 1. First name
 2. Last name
@@ -30,9 +30,9 @@ Then a form for be displayed on which the following information can be entered
 4. Select a department from a drop down
 
 ##### Detail
-Given a user is viewing the employee list
-When the user clicks on an individual employee
-Then the user should be shown a detail view of that employee, and it must contain the following information
+Given a user is viewing the employee list,
+when the user clicks on an individual employee,
+the user should be shown a detail view of that employee including:
 
 1. First name and last name
 2. Department
@@ -41,34 +41,32 @@ Then the user should be shown a detail view of that employee, and it must contai
  
  ##### Edit
 Given user is viewing an employee
-When user clicks on the Edit link
-Then user should be able to edit the last name of the employee
-Or change the department to which the employee is assigned
-Or change the computer assigned to the employee
-Or add/remove training programs for the employee to attend in the future
+When user clicks on the "Edit" link
+Then user should be able to edit the name of the employee, or change the department to which the employee is assigned
+
 
 ### 2. Department
-Use the command ```dotnet run``` to start the program, BangazonAPI. Once the program is running, open up the Postman desktop app and run the following commands for each request method:
+
  ##### GET
- Given user wants to view departments
-When user clicks on the Departments section in the navigation bar
-Then all current departments should be listed
-And the following information should be presented to the user
+Given user wants to view departments,
+when user clicks on the 'Departments' section in the navigation bar,
+all current departments should be listed
+and the following information should be presented to the user:
 
 1. Department name
 2. Department budget
 3. Size of department (number of employees assigned)
  
  ##### Create New
-Given user is viewing all departments
-When user clicks on the Create New link
-Then a form should be presented in which the new department name can be entered
+Given user is viewing all departments,
+when user clicks on the "Create New" link
+a form should be presented in which the new department name can be entered
 
 ##### Detail
-Given user is viewing list of departments
-When user clicks on a department
-Then a view should be presented with the department name as a header
-And a list of employees currently assigned to that department should be listed
+Given user is viewing list of departments,
+when a user clicks on a department
+a view should be presented with the department name as a header,
+a list of employees currently assigned to that department should be listed
 Given the user wants to see all of the employees in a department
 When the user performs a gesture on the department detail affordance
 Then the user should see the department name
@@ -77,9 +75,9 @@ And the user should see the full name of each employee in that department
 
 
 ### 4. TrainingProgram
-Use the command ```dotnet run``` to start the program, BangazonAPI. Once the program is running, open up the Postman desktop app and run the following commands for each request method:
+
  ##### GET
- Given a user wants to view all training programs
+Given a user wants to view all training programs
 When the user clicks the Training Programs item in the navigation bar
 Then the user will see a list of all training programs that have not taken place yet
 
