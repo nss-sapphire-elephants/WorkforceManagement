@@ -81,7 +81,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 {
                     return NotFound();
                 }
-
                 else
                 {
                     return View(employee);
@@ -160,32 +159,33 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 {
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
-                    {
+                    {   //update the employee name and department. If more time, include edit capabilities for computer assignment and training program.
                         cmd.CommandText = @"
                                             UPDATE Employee
                                             SET LastName = @LastName,
-                                                DepartmentId = @DepartmentId,
-                                                ComputerId = @ComputerId                                             
+                                                DepartmentId = @DepartmentId,                                         
                                             WHERE e.Id= @id;
-
-
                                             ";
-/*
-                                            //ADD employee id, training progam id
-                                            INSERT INTO Employee
-                                            //Delete employee id, training program id (delete training programs and readd               them to update)
-                                            UPDATE EmployeeTraining
-                                            SET TrainingEmployeeId = @EmployeeTrainingId
-                                            WHERE TrainingEmployeeId = @id
-*/
 
                         cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        /*                  
+                        Update the list of training programs by removing the existing query return and rerunning the query with the updated information when the user clicks the button 
                         
+                        Delete the training programs unselected by using employee id, training program 
+                        
+                        ADD the updates training list by using employee id and training progam id
+                            INSERT INTO Employee
+                            UPDATE EmployeeTraining
+                            SET TrainingEmployeeId = @EmployeeTrainingId
+                            WHERE TrainingEmployeeId = @id
+                                              
                         cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
                         cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id));
                         cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
-                        
+                        */
 
                         cmd.ExecuteNonQuery();
                         return RedirectToAction(nameof(Index));
@@ -308,7 +308,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                 }
             }
         }
-        //-------------------------------------         MODULAR DEPARTMENT DROPDOWN            -----------------------------------------
+        //     --------------------------         MODULAR DEPARTMENT DROPDOWN            ---------------------------
         private List<Department> GetAllDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -342,7 +342,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
-                {
+                { //searches database for all computers which are available for an employee (not null means currently unassigned)
                     cmd.CommandText = @"SELECT c.Id, c.Make
                                             FROM Computer c
                                             LEFT JOIN ComputerEmployee ce

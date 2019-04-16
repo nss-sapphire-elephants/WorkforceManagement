@@ -1,5 +1,5 @@
 
-﻿// Author: Nick Hansen
+// Author: Nick Hansen
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         {
             Departments = new List<Department>();
         }
-
+        
         public EmployeeCreateViewModel(string connectionString)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -46,6 +46,7 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
                 }
             }
         }
+        
         public List<SelectListItem> DepartmentOptions
         {
             get

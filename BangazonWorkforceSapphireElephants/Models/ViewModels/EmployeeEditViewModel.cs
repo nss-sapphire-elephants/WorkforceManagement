@@ -14,9 +14,7 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
         public List<Computer> ComputersList { get; set; }
         public List<TrainingProgram> AddTrainingProgramList { get; set; }
         public List<TrainingProgram> EnrolledTrainingProgramsList { get; set; }
-        // all training programs that have not enrolled in
-        // list of training program id's
-        // list of 
+      
         public List<SelectListItem> DepartmentOptions
         {
             get
