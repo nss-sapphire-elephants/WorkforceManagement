@@ -41,13 +41,13 @@
             @Html.DisplayFor(model => model.MaxAttendees)
         </dd>
 
-        <ol>
+          <h6> EmployeeName</h6><ol>
             @foreach (var item in Model.EmployeeList
                )
             {
-                <h6> EmployeeName</h6>
+                
                 <li>
-                    @Html.DisplayFor(model => item.FirstName) @Html.DisplayFor(model => item.LastName)
+                     @Html.DisplayFor(model => item.FirstName) @Html.DisplayFor(model => item.LastName)
                 </li>
             }
         </ol>
