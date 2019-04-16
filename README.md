@@ -1,4 +1,4 @@
-This MVC Web App was made at NSS using Agile/SCRUM Methodology and uses a local database created in SQL.
+This MVC Web App was made at Nashville Software School using Agile/SCRUM Methodology AND the use of a local database created in SQL.
 
 It's a CRUD heavy application and below you can read each issue ticket our team had to tackle during the sprint!
 
