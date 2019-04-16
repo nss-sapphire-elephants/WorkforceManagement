@@ -9,6 +9,15 @@ namespace BangazonWorkforceSapphireElephants.Models.ViewModels
 {
     public class EmployeeEditViewModel
     {
+        public EmployeeEditViewModel()
+        {
+            Employee = new Employee();
+            DepartmentsList = new List<Department>();
+            ComputersList = new List<Computer>();
+            AddTrainingProgramList = new List<TrainingProgram>();
+            EnrolledTrainingProgramsList = new List<TrainingProgram>();
+        }
+
         public Employee Employee { get; set; }
         public List<Department> DepartmentsList { get; set; }
         public List<Computer> ComputersList { get; set; }

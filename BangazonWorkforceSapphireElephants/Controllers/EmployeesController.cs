@@ -162,29 +162,30 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                     {   //update the employee name and department. If more time, include edit capabilities for computer assignment and training program.
                         cmd.CommandText = @"
                                             UPDATE Employee
-                                            SET LastName = @LastName,
-                                                DepartmentId = @DepartmentId,                                         
-                                            WHERE e.Id= @id;
-                                            ";
+                                            SET FirstName = @FirstName,
+                                                LastName = @LastName,
+                                                DepartmentId = @DepartmentId                                         
+                                            WHERE Id= @id";
 
+                        cmd.Parameters.Add(new SqlParameter("@FirstName", viewModel.Employee.FirstName));
                         cmd.Parameters.Add(new SqlParameter("@LastName", viewModel.Employee.LastName));
-                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.department.Id));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
                         /*                  
                         Update the list of training programs by removing the existing query return and rerunning the query with the updated information when the user clicks the button 
                         
-                        Delete the training programs unselected by using employee id, training program 
+                            Delete the training programs unselected by using employee id, training program 
                         
-                        ADD the updates training list by using employee id and training progam id
-                            INSERT INTO Employee
-                            UPDATE EmployeeTraining
-                            SET TrainingEmployeeId = @EmployeeTrainingId
-                            WHERE TrainingEmployeeId = @id
+                            ADD the updates training list by using employee id and training progam id
+                                INSERT INTO Employee
+                                UPDATE EmployeeTraining
+                                SET TrainingEmployeeId = @EmployeeTrainingId
+                                WHERE TrainingEmployeeId = @id
                                               
-                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
-                        cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id));
-                        cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
-                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                            cmd.Parameters.Add(new SqlParameter("@DepartmentId", viewModel.Employee.DepartmentId));
+                            cmd.Parameters.Add(new SqlParameter("@ComputerId", viewModel.Employee.computer.Id));
+                            cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", viewModel.Employee.trainingProgram.Id));
+                            cmd.Parameters.Add(new SqlParameter("@id", id));
                         */
 
                         cmd.ExecuteNonQuery();
@@ -237,7 +238,8 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                                tp.Id as TrainingProgramId, 
                                                tp.StartDate, 
                                                tp.EndDate, 
-                                               co.Id as ComputerId
+                                               co.Id as ComputerId,
+                                               d.Id as DepartmentId
                                             FROM Employee e
                                             LEFT JOIN Department d
                                                 ON e.DepartmentId = d.Id
@@ -273,6 +275,7 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                                 computer = new Computer(),
                                 department = new Department
                                 {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                                     Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
                                 }
                             };
@@ -426,7 +429,6 @@ namespace BangazonWorkforceSapphireElephants.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
-
                         });
                     }
                     reader.Close();
